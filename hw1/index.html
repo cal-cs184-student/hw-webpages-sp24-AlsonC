@@ -1,7 +1,86 @@
 <html>
 	<head>
+		<b>
+			Task 1
+		</b>
 	</head>
 	<body>
-		Homework 1 index.html here
+		<!-- An overview of the homework, your approach to and implementation for each of the parts, 
+			and what problems you encountered and how you solved them. Strive for clarity and succinctness.
+		 -->
+
+		 <!-- On each part, make sure to include the results described in the corresponding 
+			Deliverables section in addition to your explanation. If you failed to generate any results correctly, provide a brief explanation of why.
+		 -->
+		 <br><br>
+		 In my own words, rasterizing triangles is the process of converting from an .svg file to pixels, by sampling the .svg at certain points to determine whether how pixels should be colored.
+
+		 <br>
+		 <br>
+		 To rasterize triangles, we implemented the rasterize_triangle function. To do this and to avoid overcomputation,
+		 I first found min and max of x and y, for each triangle to create a rectangle 'bounds.' From there, I looped through 
+		 every pixel within the rectangle bounds and called a helper function, inside triangle.
+
+		<br>
+		<br>
+		This function inside triangle takes in three points (the points of the triangle as defined) and also another point that we want to test
+		whether it is inside the triangle or not. Within the body of the triangle, we calculate l0, l1, and l2 by first finding dx and dy between each pairing of x and y.
+		Then we plugin the x and y we want to test for into the line equation. For example, to test whether (x,y) is either inside or outside line defined from point0 to point1,
+		we set l0 to -(x - x0) * dy0 + (y - y0) * dx0. Then, once getting l0, l1, and l2, we test whether either all of them are greater or equal to 0, or whether all of them are less than
+		or equal to 0. Therefore, to do this I looped through every x and y pairing that could potentially be in a triangle, then added 0.5 to test whether it was inside the triangle.
+
+		<br>
+		<br>
+		If it was inside the triangle, I called fill_pixel() helper function to fill in the triangle. Because we only check the bounding box defined by max x and max y of the points of the triangle, it can be no worse than one that checks each sample within the bounding box of the triangle.
+
+		<img src="Task1.png">
+		<br>
+		Please see above for our completed Task 1 Image.
+		
+	</body>
+	<br><br>
+	<head>
+		<b>
+		Task 2 <br><br>
+		</b>
+	</head>
+	<body>
+		For supersampling, I did everything the same as Task 1, except I changed two things. 
+		<br><br>
+		1. Instead of simply calling fill_pixel, I used sample_buffer, where I would keep track of the percentage fill each pixel should have.
+		<br>
+		2. Once within the bounding box, I created an extra double for loop. Within these for loops, I looped through the sqrt of the sample rate, as for each axis thats how many unique values lied on the axis. Ie. with a 
+		sampling rate of 4, x has 2 unique values and y has 2 unique values. Then, I defined double u and double v so that they checked every possible pairing of root sample rate axis values. Then, I once again ran inside triangle, 
+		if it is, I would increment the sample_buffer correpsponding to the pixel we were in by 1/sample rate. For example, if all supersamples fell inside the triangle, the sample buffer for that pixel would be 1. 
+		<br>
+		<img src="Task2-Rate1.png"><img src="Task2-Rate4.png"><img src="Task2-Rate16.png">
+		<br>
+		<b>Above are comparisons of sample rates 1, 4, and 16 for basic/test4.svg</b>
+
+		<br><br>
+		When zoomed in, you can clearly see the affect of supersampling <br>
+		<img src="Task2-Rate1ZOOM.png" width="394.5" height ="262.5"><img src="Task2-Rate4ZOOM.png" width="394.5" height ="262.5"><img src="Task2-Rate16ZOOM.png" width="394.5" height ="262.5">
+		<br>
+		The reason why tehse results are observed, when comparaing rate 1 (far left) and rate 16 (far right) is because with supersampling, we have the ability to represent a pixel as 'half' colored, even 
+		if the original reference point doesn't lie within the triangle. Especially at corners, where only a small bit of a pixel lies within a triangle, supersampling gives us an opportunity to still show edges without having to increase our picture resolution.
+		</body>
+		<br><br>
+	<head>
+		<b>
+			Task 3<br><br>
+		</b>
+	</head>
+	<body>
+		<img src="Task3-Wave.png"> <br> Here, I am attempting to make the act scared. However, he recently dislocated his shoulder so his right arm doesn't go as far up as his left arm!
+		<br><br>
+	</body>
+	<head>
+		<b>
+			Task 4<br><br>
+		</b>
+	</head>
+	<body>
+		Barycentric coordinates
+		<br><br>
 	</body>
 </html>
