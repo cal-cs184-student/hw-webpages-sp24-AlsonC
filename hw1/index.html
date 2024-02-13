@@ -92,8 +92,42 @@
 	</head>
 	<body>
 		Barycentric coordinates give us the relative positioning from three verticies of a triangle. When we have the Barycentric coordinates, then we can assign a proportion to include for each color corresponding to each vertex on the triangle.
-		Doing this allows us to create a gradient, as demonstrated by the image below.
+		Doing this allows us to create a gradient, as demonstrated by the image below. 
+		<br>
+		<img src = "Task4-Triangle.png">
 		<br><br>
+		Here, in a 200x200 window, (0,0) represents red, (200, 0) represents green, and (100, 200) represents blue. Thus, each pixel on the triangle reprsents the proportion of red, green, and blue that that coordinate should have according to the barycentric coordinates, of which we then multiply the respective
+		 alpha beta gamma by the red green and blue values.
+		 <br><br>
+		 Please see below for basic/test7.svg
+
+		 <img src = "Task4-Test7.png">
+		 <br>
+		 <br>
 	</body>
+	<head>
+		<b>
+			Task 6<br><br>
+		</b>
+	</head>
+	<body>
+		Level Sampling is the process of downsampling a texture. For example, when we have a photo with very intricate details, but when displayed at a small resolution or at a distance, these details become less noticeable. So here we utilizing level sampling because instead of
+		rendering the full resolution of the texture at all times, we can create multiple versions of the texture at different resolutions, or levels of details. Then, depedning on distance from viewer or size of screen, we can change our optimal level of detail.
+		<br><br>
+
+		There are different tradeoffs between pixel sampling, level sampling, and number of samples per pixel.
+		<br><br>
+		For pixel sampling, we sample each pixel individually, which is computationally intensive. This means we also have to use alot of memory to store a large amount of raw pixel data. However, pixel sampling improves antialiasing quality, but the improvement in quality diminishes with each additional sample.
+		<br><br>
+		For level sampling, we can improve speed by precomputing multiple levels of detail. However, this may take some overhead time, which impacts rendering speed. 
+		For memory, we have to store the additionally precomputed mipmaps, which will require additioanl memory. However, memory overhead compared to storing full-resolution textures is is relatively low im comparison, which stores full-resolution textures.
+		<br><br>
+		For Number of samples per pixel, this affects rendering speed because increasing number of samples per pixel increases quality but takes more computation to render. For memory, increasing number of samples per pixel for things like antialiasing requires storing additional data for each sample, which increases memory usage. For antialiasing power, increasing the samples is correlated with improving antialiasing quality. However, improvement in quality diminishes with each additional sample.
+		<br><br>
+		Below are L Zero and P Nearest, L Zero and P Linear, L Nearest and P Nearest, and L Nearest and P Linear respectively.
+		<br><img src="Task6-L0PNearest.png"><br><img src="Task6-L0Bilinear.png"><br><img src="Task6-LNNearest.png"> <br><img src="Task6-LNBilinear.png">
+	</body>
+
+	
 
 </html>
