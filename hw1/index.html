@@ -1,10 +1,13 @@
 <html>
+	<!-- <div style="text-align:center" > -->
+	
 	<head>
 		<b>
 			Task 1
 		</b>
 	</head>
 	<body>
+		
 		<!-- An overview of the homework, your approach to and implementation for each of the parts, 
 			and what problems you encountered and how you solved them. Strive for clarity and succinctness.
 		 -->
@@ -13,29 +16,30 @@
 			Deliverables section in addition to your explanation. If you failed to generate any results correctly, provide a brief explanation of why.
 		 -->
 		 <br><br>
-		 In my own words, rasterizing triangles is the process of converting from an .svg file to pixels, by sampling the .svg at certain points to determine whether how pixels should be colored.
+		 In my own words, rasterizing triangles is the process of converting from an .svg file to a pixel representation of a triangle.
 
 		 <br>
 		 <br>
-		 To rasterize triangles, we implemented the rasterize_triangle function. To do this and to avoid overcomputation,
-		 I first found min and max of x and y, for each triangle to create a rectangle 'bounds.' From there, I looped through 
-		 every pixel within the rectangle bounds and called a helper function, inside triangle.
+		 To rasterize triangles, we implemented the rasterize_triangle function. Inside this function, we first calculated the bounding box of the triangle given the coordinates.
+		 This was done by calculating the minimum (x,y) value and the maximum (x,y) values. This reduces the amount of points we need to verify. From there, I looped through 
+		 every pixel within the rectangle bounds and called a helper function, inside_triangle().
 
 		<br>
 		<br>
-		This function inside triangle takes in three points (the points of the triangle as defined) and also another point that we want to test
+		Our helper function inside_triangle() takes in three points (the points of the triangle as defined) and also another point that we want to test
 		whether it is inside the triangle or not. Within the body of the triangle, we calculate l0, l1, and l2 by first finding dx and dy between each pairing of x and y.
 		Then we plugin the x and y we want to test for into the line equation. For example, to test whether (x,y) is either inside or outside line defined from point0 to point1,
 		we set l0 to -(x - x0) * dy0 + (y - y0) * dx0. Then, once getting l0, l1, and l2, we test whether either all of them are greater or equal to 0, or whether all of them are less than
-		or equal to 0. Therefore, to do this I looped through every x and y pairing that could potentially be in a triangle, then added 0.5 to test whether it was inside the triangle.
+		or equal to 0. Therefore, to do this I looped through every x and y pairing inside the bounding box (+.5 for each integer coordinate to test centers) and called inside triangle.
 
 		<br>
 		<br>
-		If it was inside the triangle, I called fill_pixel() helper function to fill in the triangle. Because we only check the bounding box defined by max x and max y of the points of the triangle, it can be no worse than one that checks each sample within the bounding box of the triangle.
-
+		If it was inside the triangle, I called fill_pixel() helper function to fill in the triangle. Because we only check the bounding box defined by max x, max y and min x, min y of the points of the triangle, it can be no worse than one that checks each sample within the bounding box of the triangle.
+		<div style="text-align:center" >
 		<img src="Task1.png">
 		<br>
 		Please see above for our completed Task 1 Image.
+		</div>
 		
 	</body>
 	<br><br>
@@ -45,13 +49,17 @@
 		</b>
 	</head>
 	<body>
-		For supersampling, I did everything the same as Task 1, except I changed two things. 
+		For supersampling, we mostly kept the bounding box logic from Task 1, except I changed two things. 
 		<br><br>
-		1. Instead of simply calling fill_pixel, I used sample_buffer, where I would keep track of the percentage fill each pixel should have.
+		1. Instead of simply calling fill_pixel, we use the sample buffer to keep track of the color of each sample for each bounding box point. 
+		If any sample was inside the triangle it was given the appropriate color inside the appropriate index in the sample buffer.
+
 		<br>
-		2. Once within the bounding box, I created an extra double for loop. Within these for loops, I looped through the sqrt of the sample rate, as for each axis thats how many unique values lied on the axis. Ie. with a 
-		sampling rate of 4, x has 2 unique values and y has 2 unique values. Then, I defined double u and double v so that they checked every possible pairing of root sample rate axis values. Then, I once again ran inside triangle, 
-		if it is, I would increment the sample_buffer correpsponding to the pixel we were in by 1/sample rate. For example, if all supersamples fell inside the triangle, the sample buffer for that pixel would be 1. 
+		2. Once within the bounding box, I created an extra double for loop. Within these for loops, I looped through all the coordinates of the samples for each integer coordinate in the bounding box. 
+		If the sample was inside, we set the sample_buffer index to the color given as mentioned above. Then, when converting the sample buffer to frame buffer, we would find the average value of all samples for any point
+		and set the appropriate framebuffer index to that color. Through supersampling, the color at each point isn't determined only by a single sample location as above but instead as the average of multiple
+		nearby samples.
+		<div style="text-align:center" >
 		<br>
 		<img src="Task2-Rate1.png"><img src="Task2-Rate4.png"><img src="Task2-Rate16.png">
 		<br>
@@ -62,18 +70,23 @@
 		<img src="Task2-Rate1Zoom.png"><img src="Task2-Rate4Zoom.png"><img src="Task2-Rate16Zoom.png">
 		<br>
 		The reason why tehse results are observed, when comparaing rate 1 (far left) and rate 16 (far right) is because with supersampling, we have the ability to represent a pixel as 'half' colored, even 
-		if the original reference point doesn't lie within the triangle. Especially at corners, where only a small bit of a pixel lies within a triangle, supersampling gives us an opportunity to still show edges without having to increase our picture resolution.
-		</body>
+		if the original reference point doesn't lie within the triangle. Especially at corners, where only a small bit of a pixel lies within a triangle, supersampling gives us an opportunity to incorporate the contribution
+		of the part which lays inside the triangle into the color for that pixel.
 		<br><br>
+		
+	</div>
 	<head>
 		<b>
 			Task 3<br><br>
 		</b>
 	</head>
 	<body>
-		<img src="Task3-Wave.png"> <br> Here, I am attempting to make the act scared. However, he recently dislocated his shoulder so his right arm doesn't go as far up as his left arm!
+		<div style="text-align:center" >
+		<img src="Task3-Wave.png"> <br> Here, I am attempting to make the robot act scared. However, he recently dislocated his shoulder so his right arm doesn't go as far up as his left arm!
 		<br><br>
+	</div>
 	</body>
+
 	<head>
 		<b>
 			Task 4<br><br>
@@ -81,33 +94,63 @@
 	</head>
 	<body>
 		Barycentric coordinates give us the relative positioning from three verticies of a triangle. When we have the Barycentric coordinates, then we can assign a proportion to include for each color corresponding to each vertex on the triangle.
-		Doing this allows us to create a gradient, as demonstrated by the image below.
-		<br><br>
-	</body>
-
-	<head>
-		<b>
-			Task 5<br><br>
-		</b>
-	</head>
-	<body>
-		Barycentric coordinates give us the relative positioning from three verticies of a triangle. When we have the Barycentric coordinates, then we can assign a proportion to include for each color corresponding to each vertex on the triangle.
 		Doing this allows us to create a gradient, as demonstrated by the image below. 
 		<br>
+		<div style="text-align:center" >
 		<img src = "Task4-Triangle.png">
 		<br><br>
 		Here, in a 200x200 window, (0,0) represents red, (200, 0) represents green, and (100, 200) represents blue. Thus, each pixel on the triangle reprsents the proportion of red, green, and blue that that coordinate should have according to the barycentric coordinates, of which we then multiply the respective
 		 alpha beta gamma by the red green and blue values.
 		 <br><br>
 		 Please see below for basic/test7.svg
+		 <br>
+		 <br>
+
 
 		 <img src = "Task4-Test7.png">
 		 <br>
 		 <br>
+		 </div>
 	</body>
 	<head>
 		<b>
-			Task 6<br><br>
+			Task 5<br><br>
+		</b>
+	</head>
+	<body>
+		Pixel sampling is the translation from screen space coordinate x,y to texture space coordinate u,v. Since we can only sample u,v at integers, we convert x,y to barycentric coordinates.
+		From the barycentric coordinates we can then calculate the u, v coordinates of the texture space. The reason we can't directly go from x,y to texture space coordinate is since each part of a triangle should
+		map to a relative part of the texture map. In addition, x,y is a contiuous, and u, v is discrete, and we cannot directly use a discrete function to define a continous function, instead we have to map or sample it. Since texture maps be sampled at integer coordinates, nearest-pixel sampling method gives us the closest u,v coordinate while bilinear pixel sampling takes the four closest
+		u-v points and uses interpolation to identify a weighted average of how close they are to the true u-v coordinate. 
+		<br><br>
+
+		
+
+		<br> <br>
+		<div style="text-align:center" >
+
+		<img src = "Task5-Nearest1.png"><img src = "Task5-Nearest16.png"> <br>
+		
+		<b>See above for Nearest & 1 Sample Per Pixel and Nearest & 16 Sample Per Pixel, respectively.</b> <br><br>
+		
+		<img src = "Task5-Billinear1.png"><img src = "Task5-Billinear16.png"> <br>
+
+		<b>See above for Bilinear & 1 Sample Per Pixel and Bilinear & 16 Sample Per Pixel respectively.</b> <br><br>
+
+		</div>
+
+		Between the two supersampling rates, the higher supersampling rates provides more accurate shapes, while between the two types of pixel sampling, billinear provides a smoother texture vesus nearest. This is because billinear incorporates multiple points into a weighted average. 
+		<br>
+
+		Nearest sampling preserves edges better than Bilinear sampling, so the difference between the two is minimized when textures have distinct color transitions.
+
+	</body>
+	<body>
+
+	</body>
+	<head>
+		<b>
+			<br><br>Task 6<br><br>
 		</b>
 	</head>
 	<body>
@@ -117,17 +160,20 @@
 
 		There are different tradeoffs between pixel sampling, level sampling, and number of samples per pixel.
 		<br><br>
-		For pixel sampling, we sample each pixel individually, which is computationally intensive. This means we also have to use alot of memory to store a large amount of raw pixel data. However, pixel sampling improves antialiasing quality, but the improvement in quality diminishes with each additional sample.
+		For pixel sampling, we sample each pixel individually, which is computationally intensive. This means we also have to use more memory to store a large amount of raw pixel data. However, pixel sampling improves antialiasing quality, but the improvement in quality diminishes with each additional sample.
 		<br><br>
 		For level sampling, we can improve speed by precomputing multiple levels of detail. However, this may take some overhead time, which impacts rendering speed. 
-		For memory, we have to store the additionally precomputed mipmaps, which will require additioanl memory. However, memory overhead compared to storing full-resolution textures is is relatively low im comparison, which stores full-resolution textures.
+		For memory, we have to store the additionally precomputed mipmaps, which will require additioanl memory.
 		<br><br>
-		For Number of samples per pixel, this affects rendering speed because increasing number of samples per pixel increases quality but takes more computation to render. For memory, increasing number of samples per pixel for things like antialiasing requires storing additional data for each sample, which increases memory usage. For antialiasing power, increasing the samples is correlated with improving antialiasing quality. However, improvement in quality diminishes with each additional sample.
+		For Number of samples per pixel, this affects rendering speed because increasing number of samples per pixel increases quality but takes more computation to render. For memory, increasing number of samples per pixel for things like antialiasing requires storing additional data for each sample, which increases memory usage. 
+		For antialiasing power, increasing the samples is correlated with improving antialiasing quality. However, improvement in quality diminishes with each additional sample.
 		<br><br>
+		<div style="text-align:center" >
 		Below are L Zero and P Nearest, L Zero and P Linear, L Nearest and P Nearest, and L Nearest and P Linear respectively.
 		<br><img src="Task6-L0PNearest.png"><br><img src="Task6-L0Bilinear.png"><br><img src="Task6-LNNearest.png"> <br><img src="Task6-LNBilinear.png">
+	</div>
 	</body>
 
-	
+	<!-- </div> -->
 
 </html>
