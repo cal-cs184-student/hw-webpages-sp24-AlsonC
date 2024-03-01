@@ -1,7 +1,204 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Homework 2 index.html here
-	</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 1</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+		background-color: #FFF8E1;
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-around;
+    }
+
+    .container img {
+        max-width: 100%;
+		width: 25%;
+        height: 50%;
+        object-fit: contain;
+		border: 5px solid #6500c4;
+    }
+	.container > div {
+  flex: 50%; /* or - flex: 0 50% - or - flex-basis: 50% - */
+  /*demo*/
+  box-shadow: 0 0 0 1px black;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+<h1>Overview</h1>
+<p>
+    This project's primary objective was to create a mesh editor for manipulating half-edge meshes and to add loop subdivisions to raise the mesh's resolution. We also used de Casteljau's algorithm as part of the project to render and display Bezier surfaces and curves. In the end, we had an editor/viewer that let us load curves and meshes and split, flip, and divide the mesh. Our approach for implementation for each of the parts was to make sure we 1) made sure all the points were tranformed/interpolated the right way and 2) we made sure to account for edge cases. 
+    Overall we learned a lot from this project about curves, surfaces, and shading. While it was tricky to debug, it was very interesting to see the power of the half-edge data structure.
+</p>
+
+<h1>Task 1</h1>
+
+<p>Casteljau's algorithm uses a parameter t to determine how much to 'slice' each edge by and repeatedly interpolates until we are left with an actual point on the Bezier Curve. With this, adjusting the parameter t over multiple values will draw out the Bezier curve.</p>
+
+<p>To implement Casteljau's algorithm, our function called one recursive step of the algorithm for a given parameter t. Given this parameter, we iterate between all adjacent pairs of points and use the algorithm (1-t)*pi + t*pi+1 to calculate the linear interpolation for each pair. We then simply return the vector containing all interpolated points which will contain 1 less point than the previous function call.</p>
+
+<div class="container">
+    <img src="Task1-1-0.png" alt="Image 1">
+    <img src="Task1-1-1.png" alt="Image 2">
+    <img src="Task1-1-2.png" alt="Image 3">
+    <img src="Task1-1-3.png" alt="Image 4">
+    <img src="Task1-1-4.png" alt="Image 5">
+    <img src="Task1-1-5.png" alt="Image 6">
+    <img src="Task1-1-6.png" alt="Image 7">
+    <img src="Task1-1-7.png" alt="Image 8">
+</div>
+
+<br>
+<h1>Task 2</h1>
+<p>
+	The de Casteljau algorithm extends to Bezier surfaces by first interpolating a set of points much like 2D. For curves, this reduces this set of points down to one point depending on t. However, where surfaces differ is that they have multiple rows of points. We first evaluate each row as if they were a curve. This gives use
+	a vector of points interpolated from each row. We then run the de Casteljau algorithm again on this new set of points to finally get a point on the 3D Bezier surface.
+
+	To implement it, we first implmented the single step of de Castelaju's, then used this to recursively evalute a vector of points down to a single point, then had a main evaluate function which recursively evaluated the rows of a two dimensional matrix then interpolated the resulting column vector that was created from the points resulting from interpolating the rows of the original matrix.
+</p>
+<div class="container">
+    <img src="Task1-2-0.png" alt="Image 1-0">
+</div>
+
+<br><br>
+<h1>Task 3</h1>
+<p>
+    To implement the area-weighted vertex normals, I implemented the formula as shown in lecture 6, where I summed up all the normals of neighboring triangles, then dividing it by its magnitude to make it a unit vector. 
+    More specifically, this was done by using a while loop to loop through all the vertexes in the curretn face (by using next()) then using position to get the vectors at each vertex. Then to find that vertex, I simply did cross(v1 - v0, v2 - v0), where v1 is defined as the next vertex and v2 is defined as the next next vertex.
+    This works because to accurately get the current vector, it has to "cancel out" v2 and v1, so I achieved the vertex and found normal using cross products. 
+    <br><br>
+    To divide by magnitude, I simply used the unit() function.
+    <br><br>
+    Please see below for the teapot without and with vertex normals respectively.
+</p>
+<div class="container">
+    <img src="Task2-1-0.png" alt="Image 1">
+    <img src="Task2-1-1.png" alt="Image 2">
+</div>
+<br><br>
+<h1>Task 4</h1>
+<p>
+    To implement part 4, We simply followed the directions given. <br><br>
+
+    We first chcked is the given edge e0 is a boundary edge. If it is, we simply returned e0 because no edge flipping can occur on boundary edges.
+    <br><br>
+    Then, we found all the neighboring elements to e0 then reassigned them to update their connectivity in the mesh to reflect the edge flip. For example we updated the pointers of half-edges to their neighboring elemnts (vertices, edges, faces) and vice versa.
+    After this, we updated the vertex, edge, and face pointers to reflect these changes we made beforehand. Even if a mapping did not change, we still made sure to set it to the correct value as recommended by the spec.
+    
+    After all this, I returned e0.
+    <br><br>Regarding implementation tricks, I made sure to draw out the example of triangles on my ipad to make sure I moved the right edges/vertexes. As such, I had no need for any debugging tricks, nor did I have an eventful debugging journey as it worked on the first attempt.
+</p>
+<div class="container">
+    <img src="Task2-2-0.png" alt="Image 1">
+    <img src="Task2-2-1.png" alt="Image 2">
+    <img src="Task2-2-2.png" alt="Image 3">
+    <img src="Task2-2-3.png" alt="Image 4">
+    <img src="Task2-2-4.png" alt="Image 5">
+    <img src="Task2-2-5.png" alt="Image 6">
+</div>
+</body>
+<br><br>
+<h1>Task 5</h1>
+<p>
+    For this edge split operation, I first checked if the given edge is a boundary edge. If not, then I performed the edge split operation.
+
+    <br><br>
+
+    We begin by checking if the given edge e0 is a boundary edge. If it is, we return the vertex of the half-edge associated with e0, signifying that no splitting is performed on boundary edges.
+
+    We then collect the half-edges, vertices, edges, and faces adjacent to the edge e0 that we intend to split.
+
+    Next, we create new faces, edges, and half-edges to accommodate the split, as splitting an edge introduces new elements into the mesh.
+
+    After this, we determine the position of the new vertex, which is inserted at the midpoint of the edge being split. This new vertex will have its half-edge pointing along the edge that was split.
+
+    Finally we update the connectivity of the mesh to reflect the split, including updating pointers of half-edges, vertices, edges, and faces. This ensures that the mesh remains consistent after the split operation.
+
+    Now we return an iterator to the newly inserted vertex resulting from the edge split operation. This allows the caller to access the newly created vertex for further processing if needed.
+    <br><br>
+
+    <!-- For this edge split operation, I first got the first triangle's half edges and the second triangle's half edges, then go their vertexes, then their edges, then their faces. I also got each half edge's twins and created two new faces and three more edges so I wouldnt have to delte the old edges.
+    <br><br>
+    
+    When it came time to set the edges,  -->
+    For the debugging, edge splitting was significantly more challenging than flipping edges. For this I had to use the provided debugging functions and moved the output onto Notepad++. With this I was able to track ids and found
+    that I modified the next pointer improperly for some of the half edges. 
+    <br><br>
+
+    Please see below for the teapot before and after a mixture of flips and splits respectively. Notice how the Phong shading appears distoreted by the flips and shifts.
+</p>
+<div class="container">
+    <img src="Task2-3-0.png" alt="Image 1">
+    <img src="Task2-3-1.png" alt="Image 2">
+</div>
+
+<br><br>
+<h1>Task 6</h1>
+<p>
+    To implement the loop subdivision, we simply followed the helper. We first computed new positions for each vertex. This was done using the formula given in the problem description (through floats n and u)
+    <br><br>
+    To compute updated vertex positions associated with edges, first iterate over all edges and store each point in the current face and neighboring face. Then, define the new position with the formula given in the problem prompt. 
+    <br><br>
+    To split every edge in the mesh, simply loop through every edge and split every edge while creating a new vertex at the midpoint and updating its connectivity. Also set flags isNew to differentiate between this newly created edge and original edges.
+    <br><br>
+    To flip any edge that connects an old and new vertex, simply loop through every edge and for those where only one of the vertexes on the edge is new, flip it.
+    <br><br>
+    Finally, for every vertex, copy the new position of the vertex into the positions.
+    <br><br>
+    In regards to debugigng tricks, we used a combination of print statements and the visual studio debugger.
+    <br><br>
+    Please see below for all stages of a subdivision.
+
+</p>
+<div class="container">
+    <img src="Task2-4-0.png" alt="Image 1">
+    <img src="Task2-4-1.png" alt="Image 2">
+    <img src="Task2-4-2.png" alt="Image 3">
+    <img src="Task2-4-3.png" alt="Image 4">
+    <img src="Task2-4-4.png" alt="Image 5">
+
+</div>
+<p>
+    In regards to what happens to sharp corners and edges, see below to observe how sharp edges start to become rounded. This occurs due to subdivision
+    repeatedly adding more midpoints along the edge, which adds more geometry along edges, allowing for smoother interpolation of surface features, including rounding of sharp edges. 
+
+</p>
+<div class="container">
+    <img src="Task2-4-5.png" alt="Image 1">
+    <img src="Task2-4-6.png" alt="Image 2">
+    <img src="Task2-4-7.png" alt="Image 3">
+    <img src="Task2-4-8.png" alt="Image 4">
+
+</div>
+<p>
+    Yes, we can presplit edges to reduce rounding. We can control where subdivision occurs by adding extra vertices along particular edges by pre-splitting the edges.
+    By carefully dividing the edges beforehand, we can control the subdivision's flow and avoid unduly smoothing out sharp features.
+
+    <br><br>
+    Regarding how to reduce asymmetry after repeated subdivisions, we can preprocess by spliting certain edges to introduce additional vertices along the cube's axes of symmetry.
+    
+    We also should flip the adjacent edges to main consistency and symmetry across adjacent faces.
+
+    <br>
+    <br>
+    This intial assymetry occurs because the topology of the mesh varies as vertices are added and edges are split, possibly upsetting preexisting symmetries.
+    Asymmetrical deformation of the mesh can result from inconsistent subdivision or topology changes.
+
+    Thus, by adding more splits and vertexes along the axis of symmetry, we 'mitigate' this affect.
+</p>
+
 </html>
