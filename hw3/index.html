@@ -1,7 +1,462 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Homework 3 index.html here
-	</body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task 1</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+		background-color: #FFF8E1;
+        margin-left: 15%; /* Set left margin */
+        margin-right: 15%; /* Set right margin */
+    }
+
+    h1 {
+        text-align: center;
+    }
+
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .container > div {
+        flex: 50%; /* or - flex: 0 50% - or - flex-basis: 50% - */
+        /*demo*/
+        display: flex; /* Added */
+        justify-content: center; /* Added */
+        align-items: center; /* Added */
+
+        margin-bottom: 10px;
+    }
+    .container div img {
+        width:70%;
+        max-width: 70%;
+        height: auto;
+    }
+</style>
+</head>
+
+<body>
+<h1>Overview</h1>
+<p>
+    In this project, we implemented all the necessary features of a ray-tracing rendering program. Ray tracing is a rendering technique that uses a simulation of the behaviors of light from a camera source to produce accurate global illumination. This unlocks the potential for hyper-photorealistic images. First we implemented the basic ray tracing mechanics for normal shading. Then, we built the necessary mechanisms for BVH Acceleration which allowed us to render more complex meshes. Next, we implemented two different types of light sampling, direct light and hemisphere. Lastly, we used a simple algorithm for adaptive sampling to identify sampling convergence. 
+</p>
+<br>
+<hr>
+<h1>Task 1: Ray Generation and Scene Intersection </h1>
+
+<p>
+    In this part, we implement ray generation. Ray generation is the initial step in ray tracing where rays are cast from the camera into the scene. There were several different steps that were crucial for our implementation. 
+    <br><br>
+
+    First, we implemented the rendering function generate_ray(). The purpose of this function was to take in image coordinates, transform them to the camera space (the coordinates from the perspective of the camera), and generate a ray in the camera space (from the camera to the coordinate in the camera perspective), then convert this ray back to the world space. Thus, we could convert a normalized image coordinate to rays in the world space, which is the foundation for tracing rays through the scene. Mathematically, we took the x and multiplied it by the tan of the horizontal and vertical field of views divided by two respectively, as defined in the problem 
+    <br>
+    <img src="TanFormulas.png">
+
+    <br><br>
+    Then, we inputted the coordinates into the ray constructor and set their max_t and min_t to fClip and nClip respectively (their clipping planes) then outputted the ray. <br><br>
+
+Next, we generated the pixel samples, through implementing the raytrace_pixel() function. In this function, we built on what we built in the previous section, generate_ray(), by using generate ray to estimate the integral of radiance over a pixel, so we could then represent the inputted corresponding pixel in sampleBuffer with a Vector3D that represents the integral that we just calculated. Through this function, we were able to estimate the integral of radiance by generating multiple random rays through the pixel and computing the radiance along each ray. As seen in the later parts, this would become useful for simulating how light interacts with the scene and contributes to the final image.
+<br><br>
+Next in the process, we implemented Ray-Triangle Intersection. The purpose of this is that now that we have rays generated and traced properly, we want to ensure that rays intersecting with triangles get properly detected and we properly detect their intersection points. To do this, we first implemented the has_intersection function, which through a series of disqualifiers, determined if the point was within the triangle, or in other words, intersected with the triangle.
+<br><br>
+    These rules included:
+    <ul>
+        <li>
+            Calculating the cross product of the points imputed, which gave us the normal and allowed us to see if the ray was parallel to the triangle, in which we returned false
+        </li>
+        <li>
+            Computing the parameter t, in which the ray intersects the plane containing the triangle, lies within the valid range of the ray, denoted by [‘min_t’, ‘max_t’], and if it fell outside of this range, returned false
+        </li>
+        <li>
+            Computing the intersection point on the plane containing the triangle using the ray equation intersection_point = ray_origin + t * ray_direction; computing the barycentric coordinates u, v, and w of the intersection points concerning the triangle vertices, and checking if the barycentric coordinates satisfy the conditions for the intersection point to be inside the triangle.
+        </li>
+        <li>
+            These conditions included:
+        </li>
+        <li>
+            u, v, w  >= 0
+        </li>
+        <li>
+            u + v + w <= 1
+        </li>
+        <li>
+            If these conditions are true, then finally we output true
+        </li>       
+    </ul>
+    Next, we implemented the intersection function, which tests for everything we mentioned above but also computes intersection details when an intersection is found. If returned true, we also update the intersection structure isect with intersection information if an intersection is found. In addition, we compute the intersection point, normal, and other data necessary for further ray tracing calculations here. Lastly, we updated the max_t value of our ray to our intersection parameter, and returned true, meaning a valid intersection occurs inside the triangle if we find an intersection.
+    <br>
+    <br>
+    Lastly, for ray-sphere intersection, we implemented has_intersection() and intersect(), both of which had similar functionalities as their triangle counterparts, except this time with triangles. These functions ensured that rays intersecting with spheres were correctly identified, allowing for the rendering of scenes containing spherical objects alongside triangles. 
+    <br>
+    <br>
+    To implement, we first implemented the test helper function, which implements the ray-sphere intersection test for a given ray r and sphere. Here, we first
+    <ui>
+        <li>
+            Calculate the Coefficients of the Quadratic Equation by calculating the coefficients a, b, and c of the quadratic equation representing the intersection of the ray with the sphere. These coefficients are derived from the ray equation and the equation of a sphere.
+        </li>
+        <li>
+            We calculated the discriminant of the quadratic equation. If the discriminant is negative, it means the ray does not intersect the sphere, and we returned false
+        </li>
+        <li>
+            We calculated the intersection parameters: if the discriminant is non-negative, we computed the two possible solutions (plus and minus) for the quadratic equation using the quadratic formula.
+        </li>
+        <li>
+            We assign the smaller value to t1 (inputted) and the larger to t2 (also inputted)
+        </li>
+    </ui>
+    <br>
+    Then, we implemented has_intersection, which checks if a ray intersects with the sphere without computing any intersection details. We first called the previously defined test helper function, computing the intersection parameters if they exist. Then, we check if any of these intersection parameters lie within the valid range of the ray and update max_t with the smaller value, then return true. If there is no valid intersection, we return false.
+    <br>
+    <br>
+    A similar path was taken for the intersect function, where we once again called the test helper function, and returned false if given no intersection. If either t1 or t2 lay within the valid range of the ray, we once again updated max_t with the smaller value, BUT we also updated the intersection with the following details:
+    <ui>
+        <li>
+            Sets the intersection parameter t to the smaller value.
+        </li>
+        <li>
+            Calculates the normal vector at the intersection point and normalizes it.
+        </li>
+        <li>
+            Sets other intersection details such as the primitive pointer and BSDF.
+        </li>
+    </ui>
+</p>
+<br>
+<h3> 
+    Here are some images with normal shading for a few small .dae files:
+</h3>
+<div class="container">
+    <div><img src = "Part 1/banana.png"></div>
+    <div><img src = "Part 1/building.png"></div>
+    <div><img src = "Part 1/CBgems.png"></div>
+    <div><img src = "Part 1/CBspheres.png"></div>
+</div>
+<br>
+<hr>
+<h1>
+    Task 2: BVH
+</h1>
+<p>
+    In this section, we constructed the bounding volume hierarchy, whose purpose was to optimize a path tracer and increase the speed of rendering complex geometries. 
+    <br><br>
+    To implement the BVH construction algorithm, we first began with a list of all scene primitives, such as triangles and spheres, that need to be rendered, and initialized with an empty BVH data structure with a root node (to be implemented as a binary search tree later). Specifically, The constructor BVHAccel::BVHAccel initializes the BVH with a vector of primitives and a maximum leaf size. It also sets the primitive member variable to the input vector and constructs the BVH using the construct_bvh function.
+    <br><br>
+    To start construction, we went through a recursive process, starting with the root node. At each step of the recursion, a node in the BVH is created to represent a bounding volume that encapsulates a subset of primitives. Then our algorithm proceeds recursively until each leaf node contains “maximum leaf size” primitives.
+    <br><br>
+    Bounding Box Calculation: for each node in the BVH, we calculated the bounding box that encloses all primitives contained within that node. Through the construct_bvh function which calculates the bounding box that encloses all primitives within the given range. This bounding box represents the spatial extent of the primitives and is used for efficient intersection testing during traversal.
+    <br><br>
+    To determine when to terminate the recursion and create leaf nodes, we calculated if the number of primitives in the current node is less than or equal to the maximum leaf size
+    <br>
+    <ui>
+        <li>
+            if true, we created a leaf node and returned it. 
+        </li>
+        <li>
+            If false, we used our heuristic to split the point 
+        </li>
+    </ui>
+    <br>
+    There were two heuristics we implemented
+    <br><br>
+    <ui>
+        <li>
+            We implemented a centroid heuristic, which chose the splitting point based on taking the median of the centroids along the axis with the greatest extent
+        </li>
+        <li>
+            We also implemented a surface area heuristic, that chose the splitting point based on what split would decrease the resulting surface areas of each bounding box the least (Explained in Task 6)
+        </li>
+    </ui>
+    <br>
+    We intially chose the centroid heuristic for simplicity, and later implemented the surface area heuristic for extra credit (mentioned below in the extra credit section).
+    <br>
+    After splitting, the range of primitives is split into two subsets, and we recursively call the construct_bvh function on each subset to create child nodes and eventually leaf nodes.
+    <br><br>
+    We also implemented the has_intersection and intersect functions, to check for intersection between a ray and the bounding box of a BVH node. Here, we check if the node is a leaf node, then check for the intersection between the ray and each primitive contained within the node.
+    <br><br>
+    Once the construction process is complete, the BVH structure is ready for use in accelerating ray tracing operations, such as ray intersection testing during rendering.
+
+
+</p>
+<p>
+    Comparing the average rendering times over 5 renders for moderately complex geomertries with and without BVH acceleration, we found: 
+    <br><br>
+    cow.dae took <b>52</b> seconds without BVH and <b>0.13</b> seconds with BVH
+    <br>
+    beetle.dae took <b>25</b> seconds without BVH and <b>0.09</b> seconds with BVH
+    <br>
+    maxplanck.dae took <b>642</b> seconds without BVH and <b>0.19</b> seconds with BVH
+</p>
+<p>
+    From these results, we can truly see how powerful a BVH tree is in reducing time to detect intersections. It allows us to render complex meshes in the order of miliseconds rather than seconds. This speedup is crucial when it comes to rendering dynamic scenes where we need extremely quick renders.
+    The reason we get this speedup is because, during traversal, rays are quickly tested against these bounding volumes, allowing large portions of the scene to be pruned if they don't intersect with the ray's path. This hierarchical culling drastically reduces the number of individual object-ray intersection tests needed, resulting in faster rendering of complex scenes by efficiently exploiting spatial coherence and minimizing unnecessary computations. 
+</p>
+<br>
+<h3> 
+    Here are some images with normal shading for a few large.dae files:
+</h3>
+<div class="container">
+    <div><img src="Part 2/beast.png"></div>
+    <div><img src="Part 2/CBlucy.png"></div>
+    <div><img src="Part 2/maxplanck.png"></div>
+    <div><img src="Part 2/peter.png"></div>
+</div>
+<br>
+<hr>
+<h1>
+    Task 3: Direct Illumination
+</h1>
+<p>
+    In this part, we started simulating light transport through the scene to render images with realistic shading. The two sampling methods we implemented were uniform hemisphere sampling and light importance sampling.
+    <br><br>
+
+
+    Uniform hemisphere sampling involves using the Monte Carlo estimator to approximate the integral over all light arriving in a hemisphere around a hit point. We uniformly sample incoming ray directions in the hemisphere and check if a raw going from the point of interest in the sampled direction intersects a light source. We can then utilize the reflection equation to calculate the amount of outgoing light. In our implementation for uniform hemisphere sampling, we begin by setting up a coordinate system for the hit point. From here we have an object-to-world space matrix and world to world-to-object space matrix. We also have a few variables we will need for our sampling loop. In the function, we define the hit point hit_p, the vector pointing towards the source of the ray w_out, and num_samples which is the total number of samples for our estimator. Then we have the sampling loop which does the Monte Carlo estimation as explained before. Inside this loop, we get a sample from the hemisphere sampler to sample points in a hemisphere around the hit point. This gives us an object space coordinate which we convert to world space. From this, we can construct the sample ray using the hitpoint and the converted world space sample point. We then check if this ray intersects with any primitive using the BVH tree. If we record an intersection, we can then use the reflection equation to calculate a single sample: newIsect.bsdf->get_emission() * isect.bsdf->f(w_out, s) * cos_theta(s). Note that if the intersection is not a light source, its emission will be zero and the sample will not contribute to the total. Also, each sample is uniform probability so after summing all the sample values, we can divide by the number of samples to get our lighting estimate for our ray.
+    <br><br>
+
+    Light importance sampling has the same goal as uniform hemisphere sampling, but instead of sampling points around the hit point, we want to sample directions between each light source and the hit point. If we see there are no intersections between the hit point and the light source, then we know that this light source casts light onto the hit point and we can use the reflectance equation. In addition to the previous sampling method, we can now also render images with only point lights. In our implementation, we iterated through all the lights in the scene. If the light source was a point light, we only need to sample once, as all samples from a point light will be the same. If it wasn’t, we take ns_area_light samples and average these samples to get our reading. To calculate the sample we use the given sample_L function which samples the light from the light source to a hit point. When using the sample_L, we get the probability density function evaluated at the vector which represents the probability of that sample. We must divide the sample by this value before adding its contribution to the total since it is no longer uniform. 
+    <br><br>
+    Contribution for point light: L_out += s*isect.bsdf->f(w_out, dir)*cos_theta(dir))/write_pdf;
+    <br>
+    Contribution for non-point light: (sum of s * isect.bsdf->f(w_out, dir) * cos_theta(dir)) / write_pdf for each sample)/num_samples
+
+</p>
+<p>
+    From the images below, we can see a clear difference between uniform hemisphere sampling and direct light sampling. The uniform hemisphere sampling is significantly
+    noisier than uniform hemisphere sampling. The direct light sampling renders with less light rays are clearer than uniform hemisphere sampling renders with more light rays. Since uniform hemisphere sampling distributes rays evenly over the hemisphere above a surface, it allocates samples to all directions even when little to no light is actually
+    arriving from there. In direct light sampling, we sample towards directions with actual light contributions. This way, we practically bias sampling towards light sources providing a significantly clearer and less noisy render. 
+    We can also see how the number of light samples affects noise from these images. In the last section which compares the bunny with different light samples, we can see that the higher the number of samples, the less noisy our render is.
+    This makes intuitive sense as more samples more accurately represents the true value of the integral of radiance. 
+</p>
+<h3> 
+    Here are some images rendered with Uniform Hemisphere Sampling with 8 (left column) and 16 (right column) light rays:
+</h3>
+<div class="container">
+    <div><img src="Part 3/UniformHemisphereSampling/CBbunny_H_64_8.png"></div>
+    <div><img src="Part 3/UniformHemisphereSampling/CBbunny_H_64_32.png"></div>
+    <div><img src="Part 3/UniformHemisphereSampling/CBspheres_H_64_8.png"></div>
+    <div><img src="Part 3/UniformHemisphereSampling/CBspheres_H_64_32.png"></div>
+</div>
+<h3> 
+    Here are some images rendered with Direct Light Sampling with 8 (left column) and 16 (right column) light rays:
+
+</h3>
+<div class="container">
+    <div><img src="Part 3/DirectLightSampling/CBbunny_64_8.png"></div>
+    <div><img src="Part 3/DirectLightSampling/CBbunny_64_32.png"></div>
+    <div><img src="Part 3/DirectLightSampling/CBspheres_64_8.png"></div>
+    <div><img src="Part 3/DirectLightSampling/CBspheres_64_32.png"></div>
+</div>
+<h3> 
+    Here are images of the bunny rendered using Direct Light Sampling with 1, 4, 16, and 64 light rays (in order) and 1 sample per pixel:
+</h3>
+<div class="container">
+    <div><img src="Part 3/OneSceneLightSampling/CBbunny_1_1.png"></div>
+    <div><img src="Part 3/OneSceneLightSampling/CBbunny_1_4.png"></div>
+    <div><img src="Part 3/OneSceneLightSampling/CBbunny_1_16.png"></div>
+    <div><img src="Part 3/OneSceneLightSampling/CBbunny_1_64.png"></div>
+</div>
+
+
+<h1>
+    Task 4: Global Illumination
+</h1>
+<p>
+    Global illumination encompasses all forms of lighting in a scene, including both direct and indirect lighting. Indirect lighting refers to the light that is not directly emitted from a light source but rather arrives at a point in the scene after undergoing multiple ray bounces. 
+    <br>
+    <br>
+    To implement this, we created the recursive function, at_least_one_bounce_radiance, which uses the one bounce radiance + the radiance from extra bounces at this point. We also add a depth field for each ray in raytrace_pixel  to set the number of bounces. To simulate extra bounces, we recursively call at_least_one_bounce_radiance to calculate the radiance from another point and incorporate that value into the total using the radiance equation from the last part. 
+    <br><br>
+    The recursive logic:
+    <br><br>
+    If the current depth of the ray (indicating the number of bounces it has taken) is not equal to 1:
+
+    <ui>
+        <li>
+            A new ray newRay is created based on the sampled direction wi.
+        </li>
+        <li>
+            This new ray is cast into the scene, and if it intersects any geometry, the intersection information is stored in newIsect.
+        </li>
+        <li>
+            The function is recursively called with this new ray and intersection, to compute the radiance contribution from this bounce.
+        </li>
+        <li>
+            The computed radiance contribution is then added to L_out, scaled by the cosine of the angle between the incident direction and the surface normal, and divided by the pdf value associated with the sampling.
+        </li>
+    </ui>
+
+    <br>
+    If the current depth of the ray is 1:
+
+    <ui>
+        <li>
+            Call one_bounce _radiance to use the sampling method given in the parameters to calculate the single bounce radiance.
+        </li>
+    </ui>
+    <br>
+    One issue with setting a maximum depth is that it leads to a biased estimate. We introduce Russian roulette by culling paths according to a set probability. In our implementation, we cull with a probability of 30 percent to reduce this bias.
+
+    <br>
+    <h3>
+        Here are some images rendered with global illumination and 1024 samples per pixel:
+    </h3>
+    <div class="container">
+        <div><img src="Part 4/GlobalIlluminationPics/adaptive1.png"></div>
+        <div><img src="Part 4/GlobalIlluminationPics/global1.png"></div>
+    </div>
+    <br>
+    <p>
+        Above we can see how global illumination captures ambient light as well as light directly from the source in a realistic manner.
+    </p>
+    <br>
+    <h3>
+        Here is one scene with only direct illumination (left) and only indirect illumination (right):
+    </h3>
+    <div class="container">
+        <div><img src="Part 4/onlyoneorother/onlydirect.png"></div>
+        <div><img src="Part 4/onlyoneorother/onlyindirect.png"></div>
+    </div>
+    <br>
+    <p>
+        Above we can see the differences between direct and indirect illumination. With direct illumination only, we get the one bounce ray which doesn't really capture ambient light but emphasizes where the light source directly hits the primitives.
+        With global illumination only, we see more of the ambient light reflected off surfaces, giving a smoother and more realistic lighting appearance overall. However, we don't see any emphasis from where the light source directly hits the primitives.
+    </p>
+    <br>
+    <h3>
+        Here are the mth bounces of light for CBBunny. The ray depths are 0, 1, 2, 3, 4, 5 in order from left to right and top to bottom:
+    </h3>
+    <div class="container">
+        <div><img src="Part 4/CBBunnyNoAccum/noaccum_0.png"></div>
+        <div><img src="Part 4/CBBunnyNoAccum/noaccum_1.png"></div>
+        <div><img src="Part 4/CBBunnyNoAccum/noaccum_2.png"></div>
+        <div><img src="Part 4/CBBunnyNoAccum/noaccum_3.png"></div>
+        <div><img src="Part 4/CBBunnyNoAccum/noaccum_4.png"></div>
+        <div><img src="Part 4/CBBunnyNoAccum/noaccum_5.png"></div>
+    </div>
+    
+    <br>
+    <p>
+        Above we can see the mth bounce of light for different ray depths. Between the 2nd and 3rd bounce of lights, we see a significant reduction in the overall amount of global light captured. This is because as the light bounces multiple times, some of it is absorbed by the primitive.
+        It makes intuitive sense that as the value of m increases, we see less and less global light in the image. Compared to the rasterization based pipeline, this shows how we ray tracing can capture the global interactions of the light source rather than only the pixel's direct relation to light source. The ray's bouncing throughout the 
+        scene creates a hyper-photorealistic lighting scene.
+    </p>
+    <br>
+    <h3>
+        Here are some renders of CBBunny ray depths 0, 1, 2, 3, 4, 5 and 1024 samples per pixel without russian roulette:
+    </h3>
+ 
+    
+    <div class="container">
+        <div><img src="Part 4/CBBunnyNoRoulette/cbbunny_noroulette-0.png"></div>
+        <div><img src="Part 4/CBBunnyNoRoulette/cbbunny_noroulette-1.png"></div>
+        <div><img src="Part 4/CBBunnyNoRoulette/cbbunny_noroulette-2.png"></div>
+        <div><img src="Part 4/CBBunnyNoRoulette/cbbunny_noroulette-3.png"></div>
+        <div><img src="Part 4/CBBunnyNoRoulette/cbbunny_noroulette-4.png"></div>
+        <div><img src="Part 4/CBBunnyNoRoulette/cbbunny_noroulette-5.png"></div>
+    </div>
+    <br>
+    <p>
+        Above we can see how the different ray depths impact the image by introducing more and more ambient light. While the lighting differences decreases as the number of bounces increases, we can see that with more bounces, the overall render is brighter.
+        Without russian roulette here, we can observe that the images almost seem too bright, especially in the m=5 case. This is because using a constant number of bounces can bias the lighting in our image. 
+    </p>
+    <br>
+    <h3>
+        Here are some renders of CBBunny ray depths 0, 1, 2, 3, 4, 100 and 1024 samples per pixel with russian roulette:
+
+    </h3>
+    
+    <div class="container">
+        <div><img src="Part 4/CBBunnyRoulette/Russian_Roulette0.png"></div>
+        <div><img src="Part 4/CBBunnyRoulette/Russian_Roulette1.png"></div>
+        <div><img src="Part 4/CBBunnyRoulette/Russian_Roulette2.png"></div>
+        <div><img src="Part 4/CBBunnyRoulette/Russian_Roulette3.png"></div>
+        <div><img src="Part 4/CBBunnyRoulette/Russian_Roulette4.png"></div>
+        <div><img src="Part 4/CBBunnyRoulette/Russian_Roulette100.png"></div>
+    </div>
+    <br>
+        Here we see a similar impact of increasing the ray depths as the renders without russian roulette. However, we can see that in the m=5 case, we still preserve many of the shadows that are almost nonexistaent when not using russian roulette. Russian roulette introduces
+        some randomness into the number of bounces and reduces the bias of the lighting.
+    <br>
+    <br>
+    <h3>
+        Here is CBBunny rendered with sample-per-pixel rates 1, 2, 4, 8, 16, 64, 1024 in order from left to right and top to bottom:
+    </h3>
+    <div class="container">
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel1.png"></div>
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel2.png"></div>
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel4.png"></div>
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel8.png"></div>
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel64_real16.png"></div>
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel16_real64.png"></div>
+        <div><img src="Part 4/Per_Pixel_Rate/variouspixel1024.png"></div>
+    </div>
+    <br>
+    <p>
+        Above we can see how increasing the samples-per-pixels reduces the noise in the image. With extremely low samples per pixel, our Monte Carlo estimator of the pixel's final output does a poor job of estimating the true integral.
+        As we increase the sample size, we get closer to the true value of the integral providing a realistic image with minimal noise.
+    </p>
+</p>
+
+
+<h1>
+    Task 5: Adaptive Sampling
+</h1>
+<p>
+    One solution to reducing noise when using Monte Carlo path tracing is to increase the number of samples of pixels. However, this could potentially lead to oversampling in areas that converge quickly from low sampling rates. Oversampling is wasted computation which can be avoided through the introduction of an adaptive sampling algorithm that detects whether a pixel has converged. Our adaptive sampling algorithm determines if a pixel has converged by analyzing the mean (μ) and standard deviation (σ) of sampled ray values. It computes a threshold (I) based on the number of samples (n) and standard deviation. If I is less than a maximum tolerance factor times μ, it concludes convergence. This threshold ensures that with 95% confidence, the average illuminance in the pixel falls within a certain range. The choice of 1.96 stems from the 95% confidence level in statistical analysis. If the condition is met, further ray tracing for that pixel is halted. 
+    <br><br>
+    To implement this, in our sampling loop in raytrace_pixel, we keep track of two values s1 and s2 which are the sum of the values and the sum of the squares of the values respectively. Using s1 and s2, we can calculate μ by doing s1/n and calculate σ^2 by doing (1/(n-1))*(s^2-(s1^2/n)). This helps us avoid having to calculate every sample’s illuminance to compute them. We also don’t check if a pixel converges each sample since this is costly. Instead, we use the samplesPerBatch variable to determine how often we should check if a pixel has converged using ns_aa as the upper bound on a number of samples. We also fill sampleCountBuffer with the appropriate number of samples so we can view our sampling rate images.
+    <br>
+    <h3>
+        Here are the renders of CBBunny and CBspheres and their respective sampling rate images:
+    </h3>
+    <div class="container">
+        <div><img src="Part 5/adaptive1.png"></div>
+        <div><img src="Part 5/adaptive1_rate.png"></div>
+        <div><img src="Part 5/adaptive2.png"></div>
+        <div><img src="Part 5/adaptive2_rate.png"></div>
+    </div>
+    <br>
+    <p>
+        Above we see the bunny and spheres rendered using adaptive sampling. From these images, we can observe how the sampling rate is relatively low in areas with constant lighting. For example, the back and side walls of the Cornell box which do not have shadows converge quickly. Parts which have more variability in lighting, such as the bunny and spheres itself, converge after many more samples. This intuitively makes sense as our samples are more likely to be different in complex areas rather than areas with constant light.
+    </p>
+</p>
+<h1>
+    Task 6: Extra Credit
+</h1>
+<p>
+    We implemented the surface area heuristic for splitting in our BVH. The Surface Area Heuristic (SAH) is a method used in constructing a Binary Space Partitioning (BSP) tree, particularly in constructing Bounding Volume Hierarchies (BVHs). BVHs are hierarchical data structures used in ray tracing to efficiently organize and traverse objects in a scene. The Surface Area Heuristic aims to partition the bounding boxes of objects in a scene into smaller groups to form a hierarchical tree structure. The idea behind SAH is to minimize the cost of traversing the tree by finding optimal splitting planes that minimize the expected traversal time.
+    <br><br>
+    The process involves calculating the cost of a split based on the cost of traversal and the surface area of the resulting bounding boxes. Our cost function was defined as, leftCount * leftBox.surface_area() + rightCount * rightBox.surface_area(). Since there are many different split points which could be optimal, our implementation takes the sorted centroids list and checks the cost of splitting at each point by calling the sah() helper function. We then use the split point which has the lowest associated cost.
+    <br><br>
+    Here is our implementation for the sah helper which calculates the cost of splitting as explained above:
+    <br>
+    <div><img src="ExtraCredit.png"></div>
+    <br><br>
+    When testing the performance of SAH vs Mean of Centroids, we discovered that SAH takes a significantly longer time to generate the BVH tree. We concluded that this is due to the fact that we need to check every possible split point rather than calculating the split in O(1) time. However, we reasoned that the extra time it takes to create the BVH tree is alright since it only needs to be calculated once for a scene. 
+    <br><br>
+    When testing the rendering times of the surface area heuristic, we identified how powerful this heuristic was. Since our new tree was much more optimal in terms of traversal times, we found significant speedups when rendering max-planck.dae. Since it is too difficult to observe significant differneces in our BVH tree through visualization, we instead used timing tests.
+    <br><br>
+    Over 100 renders, the average time to render Max Planck using the mean of centroids was 0.19 seconds on our machine.
+    <br><br>
+    Over 100 renders, the average time to render Max Planck using the surface area heuristic was 0.08 seconds on our machine.
+    <br><br>
+    This was a <b>2.25x</b> speedup for the surface area heuristic, a significant improvement on the mean of centroids!
+    <br><br>
+    We predict that this heuristic will have even greater speedups for meshes with even more primitives than Max Planck, however the time to generate the BVH trees would be greater as well. For scenes with dynamic point lighting, this heuristic would prove very useful as BVH trees only need to be created once while rendering would happen multiple times as the point light moves.
+    <br><br>
+
+</p>
+
+<h2>
+    Partner Reflection
+</h2>
+
+<p>
+    Through this project, we learned how important it was to plan ahead of time for each part. In addition, breaking up the parts into smaller tasks helped us parallelize implementations. We used a mixture of breaking up tasks as well as peer-programming to improve the rate and quality of our code.
+</p>
 </html>
